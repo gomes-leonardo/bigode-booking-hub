@@ -160,6 +160,7 @@ class ApiClient {
 
     // Services
     if (endpoint.includes('/services')) {
+      // Support both /admin/services and /barbershops/:id/services
       return {
         services: [
           { id: '550e8400-e29b-41d4-a716-446655440210', name: 'Corte Masculino', duration: 30, price: 45.00 },
@@ -267,6 +268,139 @@ class ApiClient {
       return {
         bookingUrl: 'https://bigode.app/booking/abc123xyz',
         expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      };
+    }
+
+    // Booking token validation
+    if (endpoint.includes('/auth/booking/')) {
+      return {
+        barbershopId: '550e8400-e29b-41d4-a716-446655440200',
+        barberId: null, // null = cliente escolhe, ou um ID específico para pre-selecionar
+        message: 'Bem-vindo! Escolha seu barbeiro e horário.',
+      };
+    }
+
+    // Queue endpoints
+    if (endpoint.includes('/queue') && endpoint.includes('/join')) {
+      return {
+        position: 3,
+        estimatedWaitTime: 120, // 40min × 3
+        queueLength: 4,
+      };
+    }
+
+    if (endpoint.includes('/queue') && endpoint.includes('/position')) {
+      // Simulate position decreasing over time
+      const position = Math.max(1, Math.floor(Math.random() * 5) + 1);
+      return {
+        position,
+        estimatedWaitTime: position * 40,
+        queueLength: position + 2,
+      };
+    }
+
+    if (endpoint.includes('/queue') && options.method === 'DELETE') {
+      return { success: true, message: 'Você saiu da fila' };
+    }
+
+    if (endpoint.includes('/queue') && !endpoint.includes('/join') && !endpoint.includes('/position') && !endpoint.includes('/leave')) {
+      // GET /barbers/:id/queue - Status da fila
+      return {
+        isOpen: true,
+        queueLength: 4,
+        estimatedWaitTime: 120,
+      };
+    }
+
+    // Get barber appointments
+    if (endpoint.includes('/barbers/') && endpoint.includes('/appointments')) {
+      const today = new Date();
+      const appointments = [];
+      
+      // Generate appointments for next 7 days
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        const appointmentsForDay = [];
+        
+        // 3-5 appointments per day
+        const count = Math.floor(Math.random() * 3) + 3;
+        for (let j = 0; j < count; j++) {
+          const hour = 9 + j * 2;
+          const start = new Date(date);
+          start.setHours(hour, 0, 0, 0);
+          const end = new Date(start);
+          end.setMinutes(30);
+          
+          appointmentsForDay.push({
+            id: `apt-${i}-${j}`,
+            startTime: start.toISOString(),
+            endTime: end.toISOString(),
+            serviceName: ['Corte Masculino', 'Barba Completa', 'Combo'][j % 3],
+            status: 'scheduled',
+          });
+        }
+        
+        if (appointmentsForDay.length > 0) {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          appointments.push({
+            date: `${year}-${month}-${day}`,
+            appointments: appointmentsForDay,
+          });
+        }
+      }
+      
+      return { appointments };
+    }
+
+    // Get barbershops barbers (for client booking flow)
+    if (endpoint.includes('/barbershops/') && endpoint.includes('/barbers')) {
+      return {
+        barbers: [
+          {
+            id: '550e8400-e29b-41d4-a716-446655440201',
+            name: 'Carlos Silva',
+            schedules: [
+              { dayOfWeek: 1, startTime: '09:00', endTime: '18:00', isActive: true },
+              { dayOfWeek: 2, startTime: '09:00', endTime: '18:00', isActive: true },
+              { dayOfWeek: 3, startTime: '09:00', endTime: '18:00', isActive: true },
+              { dayOfWeek: 4, startTime: '09:00', endTime: '18:00', isActive: true },
+              { dayOfWeek: 5, startTime: '09:00', endTime: '18:00', isActive: true },
+              { dayOfWeek: 6, startTime: '09:00', endTime: '14:00', isActive: true },
+            ],
+          },
+          {
+            id: '550e8400-e29b-41d4-a716-446655440202',
+            name: 'Rafael Santos',
+            schedules: [
+              { dayOfWeek: 1, startTime: '10:00', endTime: '19:00', isActive: true },
+              { dayOfWeek: 2, startTime: '10:00', endTime: '19:00', isActive: true },
+              { dayOfWeek: 3, startTime: '10:00', endTime: '19:00', isActive: true },
+              { dayOfWeek: 4, startTime: '10:00', endTime: '19:00', isActive: true },
+              { dayOfWeek: 5, startTime: '10:00', endTime: '19:00', isActive: true },
+            ],
+          },
+        ],
+      };
+    }
+
+    // Create appointment (client side)
+    if (endpoint.includes('/appointments') && options.method === 'POST') {
+      const body = options.body ? JSON.parse(options.body as string) : {};
+      const now = new Date();
+      const startTime = body.startTime ? new Date(body.startTime) : new Date(now.setHours(now.getHours() + 1));
+      const service = body.serviceId === '550e8400-e29b-41d4-a716-446655440212' ? 60 : 30;
+      const endTime = new Date(startTime.getTime() + service * 60000);
+      
+      return {
+        id: '550e8400-e29b-41d4-a716-446655440300',
+        barberId: body.barberId,
+        serviceId: body.serviceId,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        status: 'scheduled',
       };
     }
 
