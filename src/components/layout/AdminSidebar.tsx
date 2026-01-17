@@ -9,7 +9,8 @@ import {
   Settings,
   LogOut,
   ChevronLeft,
-  Menu
+  Menu,
+  CreditCard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MustacheLogo } from "@/components/icons/MustacheLogo";
@@ -24,6 +25,7 @@ const navItems = [
   { to: "/admin/barbers", icon: Users, label: "Barbeiros" },
   { to: "/admin/services", icon: Scissors, label: "Serviços" },
   { to: "/admin/booking-link", icon: Link2, label: "Gerar Link" },
+  { to: "/admin/subscription", icon: CreditCard, label: "Planos" },
   { to: "/admin/settings", icon: Settings, label: "Configurações" },
 ];
 
