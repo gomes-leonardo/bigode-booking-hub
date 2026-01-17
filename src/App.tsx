@@ -11,6 +11,7 @@ import AdminAgenda from "./pages/admin/AdminAgenda";
 import AdminBarbers from "./pages/admin/AdminBarbers";
 import AdminServices from "./pages/admin/AdminServices";
 import AdminBookingLink from "./pages/admin/AdminBookingLink";
+import AdminSubscription from "./pages/admin/AdminSubscription";
 import { AdminLayout } from "./components/layout/AdminLayout";
 import NotFound from "./pages/NotFound";
 
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="barbers" element={<AdminBarbers />} />
             <Route path="services" element={<AdminServices />} />
             <Route path="booking-link" element={<AdminBookingLink />} />
+            <Route path="subscription" element={<AdminSubscription />} />
           </Route>
           
           {/* Catch-all */}

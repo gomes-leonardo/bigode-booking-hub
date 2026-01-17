@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { DashboardFilters, type DateRangePreset, type AppointmentStatus } from "@/components/admin/DashboardFilters";
 import { 
   CalendarDays, 
   CheckCircle2, 
@@ -62,11 +63,22 @@ const statusConfig = {
   no_show: { label: "Não compareceu", color: "bg-orange-100 text-orange-700 border-orange-200" },
 };
 
+const mockBarbers = [
+  { id: "1", name: "Carlos Silva" },
+  { id: "2", name: "Rafael Santos" },
+  { id: "3", name: "Fernando Oliveira" },
+];
+
 export default function AdminDashboard() {
   const { admin } = useAuthStore();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Filter states
+  const [selectedPreset, setSelectedPreset] = useState<DateRangePreset>("today");
+  const [selectedStatus, setSelectedStatus] = useState<AppointmentStatus>("all");
+  const [selectedBarber, setSelectedBarber] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -101,6 +113,13 @@ export default function AdminDashboard() {
     });
   };
 
+  // Filter appointments
+  const filteredAppointments = appointments.filter((apt) => {
+    if (selectedStatus !== "all" && apt.status !== selectedStatus) return false;
+    if (selectedBarber && apt.barberName !== mockBarbers.find(b => b.id === selectedBarber)?.name) return false;
+    return true;
+  });
+
   if (isLoading) {
     return (
       <div className="flex-1 p-8">
@@ -126,18 +145,18 @@ export default function AdminDashboard() {
           </h1>
           <p className="text-muted-foreground">{admin?.barbershopName}</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            Hoje
-          </Button>
-          <Button variant="ghost" size="sm">
-            Esta Semana
-          </Button>
-          <Button variant="ghost" size="sm">
-            Este Mês
-          </Button>
-        </div>
       </div>
+
+      {/* Filters */}
+      <DashboardFilters
+        barbers={mockBarbers}
+        selectedPreset={selectedPreset}
+        selectedStatus={selectedStatus}
+        selectedBarber={selectedBarber}
+        onDateRangeChange={({ preset }) => setSelectedPreset(preset)}
+        onStatusChange={setSelectedStatus}
+        onBarberChange={setSelectedBarber}
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -271,12 +290,12 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {appointments.length === 0 ? (
+              {filteredAppointments.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
-                  Nenhum agendamento para hoje
+                  Nenhum agendamento encontrado
                 </p>
               ) : (
-                appointments.map((apt) => (
+                filteredAppointments.map((apt) => (
                   <div 
                     key={apt.id} 
                     className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
