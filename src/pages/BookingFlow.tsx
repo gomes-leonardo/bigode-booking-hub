@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { MustacheLogo } from "@/components/icons/MustacheLogo";
+import { BookingStepper } from "@/components/booking/BookingStepper";
+import { PremiumQueueTicket } from "@/components/booking/PremiumQueueTicket";
 import {
   Loader2,
   ArrowRight,
@@ -21,6 +23,8 @@ import {
   Sparkles,
   Users,
   X,
+  Star,
+  Timer,
 } from "lucide-react";
 import { format, addDays, startOfDay, isSameDay, isBefore, parse, setHours, setMinutes } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -47,8 +51,10 @@ interface Barber {
 interface Service {
   id: string;
   name: string;
+  description?: string;
   duration: number;
   price: number;
+  category?: string;
 }
 
 interface TimeSlot {
@@ -409,59 +415,7 @@ export default function BookingFlow() {
     return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startStr}/${endStr}&details=${details}&location=${location}`;
   };
 
-  // Stepper component
-  const Stepper = ({ currentStep }: { currentStep: Step }) => {
-    const steps = [
-      { id: "barber", label: "Barbeiro", icon: User },
-      { id: "service", label: "Serviço", icon: Scissors },
-      { id: "date", label: "Data", icon: CalendarIcon },
-      { id: "time", label: "Horário", icon: Clock },
-      { id: "confirmation", label: "Confirmar", icon: CheckCircle2 },
-    ];
-
-    const stepIndex = steps.findIndex((s) => s.id === currentStep);
-    const visibleSteps = preSelectedBarberId ? steps.slice(1) : steps;
-
-    return (
-      <div className="flex items-center justify-center gap-2 mb-8">
-        {visibleSteps.map((step, index) => {
-          const stepNum = preSelectedBarberId ? index + 1 : index;
-          const isActive = stepIndex >= stepNum;
-          const Icon = step.icon;
-
-          return (
-            <div key={step.id} className="flex items-center">
-              <div className="flex flex-col items-center gap-2">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                    isActive
-                      ? "bg-primary text-cream shadow-md"
-                      : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                </div>
-                <span
-                  className={`text-xs font-medium hidden sm:block ${
-                    isActive ? "text-foreground" : "text-muted-foreground"
-                  }`}
-                >
-                  {step.label}
-                </span>
-              </div>
-              {index < visibleSteps.length - 1 && (
-                <div
-                  className={`w-8 h-0.5 mx-2 transition-all ${
-                    isActive ? "bg-primary" : "bg-muted"
-                  }`}
-                />
-              )}
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
+  // Removed inline Stepper - using BookingStepper component instead
 
   if (step === "loading") {
     return (
@@ -574,7 +528,7 @@ export default function BookingFlow() {
         </div>
 
         {/* Stepper */}
-        <Stepper currentStep={step} />
+        <BookingStepper currentStep={step} preSelectedBarberId={preSelectedBarberId} />
 
         {/* Step Content */}
         <Card className="card-elegant animate-fade-in">
@@ -832,105 +786,17 @@ export default function BookingFlow() {
               </div>
             )}
 
-            {/* Step: Queue Position */}
-            {step === "queue-position" && selectedBarber && (
-              <div className="space-y-6">
-                {/* Live indicator */}
-                <div className="flex items-center justify-center gap-2 mb-4">
-                  <div className="relative">
-                    <div className="w-3 h-3 bg-success rounded-full animate-ping absolute"></div>
-                    <div className="w-3 h-3 bg-success rounded-full relative"></div>
-                  </div>
-                  <span className="text-sm font-medium text-success">Ao vivo</span>
-                </div>
-
-                <div className="text-center space-y-4">
-                  <div className="relative w-32 h-32 mx-auto">
-                    {/* Pulsing ring animation */}
-                    <div className="absolute inset-0 rounded-full gradient-gold opacity-20 animate-ping"></div>
-                    <div className="absolute inset-2 rounded-full gradient-gold opacity-40 animate-pulse"></div>
-                    <div className="absolute inset-0 rounded-full gradient-gold flex items-center justify-center shadow-lg">
-                      <span className="font-bold text-5xl text-charcoal relative z-10">
-                        {queuePosition !== null ? queuePosition : "-"}
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <h2 className="font-display text-2xl font-bold text-foreground mb-2">
-                      Sua Posição na Fila
-                    </h2>
-                    <p className="text-muted-foreground">
-                      {queuePosition === 1
-                        ? "Você é o próximo!"
-                        : queuePosition !== null
-                        ? `Ainda ${queuePosition} ${queuePosition === 1 ? "pessoa" : "pessoas"} na frente`
-                        : "Carregando..."}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-6 bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl border-2 border-border space-y-4 shadow-md">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground flex items-center gap-2">
-                      <Clock className="h-5 w-5 animate-pulse text-primary" />
-                      Tempo de espera estimado
-                    </span>
-                    <span className="font-bold text-2xl text-primary">
-                      {queueWaitTime !== null
-                        ? `${Math.floor(queueWaitTime / 60)}h ${String(queueWaitTime % 60).padStart(2, "0")}min`
-                        : "-"}
-                    </span>
-                  </div>
-                  <div className="pt-4 border-t border-border">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-muted-foreground">
-                        Tempo aproximado: 40 minutos por corte
-                      </p>
-                      <div className="flex items-center gap-1">
-                        <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
-                        <span className="text-xs text-muted-foreground">Atualizando...</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Progress bar */}
-                {queuePosition !== null && queuePosition > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Progresso na fila</span>
-                      <span>{queuePosition > 10 ? "10+" : queuePosition} pessoas</span>
-                    </div>
-                    <div className="h-3 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full gradient-gold transition-all duration-500 ease-out"
-                        style={{
-                          width: `${Math.max(10, 100 - queuePosition * 10)}%`,
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                )}
-
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="w-full border-destructive/50 hover:bg-destructive/10 hover:border-destructive"
-                  onClick={handleLeaveQueue}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      Saindo da fila...
-                    </>
-                  ) : (
-                    <>
-                      <X className="h-5 w-5" />
-                      Sair da Fila
-                    </>
-                  )}
-                </Button>
+            {/* Step: Queue Position - Premium Ticket */}
+            {step === "queue-position" && selectedBarber && queuePosition !== null && (
+              <div className="py-4">
+                <PremiumQueueTicket
+                  position={queuePosition}
+                  estimatedWaitTime={queueWaitTime || 0}
+                  queueLength={queueStatus?.queueLength || queuePosition + 2}
+                  barberName={selectedBarber.name}
+                  onLeaveQueue={handleLeaveQueue}
+                  isLoading={isLoading}
+                />
               </div>
             )}
 
@@ -955,20 +821,58 @@ export default function BookingFlow() {
                     <button
                       key={service.id}
                       onClick={() => handleServiceSelect(service)}
-                      className={`p-6 rounded-xl border-2 transition-all text-left ${
+                      className={`group relative p-5 rounded-2xl border-2 transition-all duration-300 text-left overflow-hidden ${
                         selectedService?.id === service.id
-                          ? "border-primary bg-primary/5 shadow-md"
-                          : "border-border hover:border-primary/50 hover:shadow-md"
+                          ? "border-secondary bg-gradient-to-br from-secondary/10 to-secondary/5 shadow-lg shadow-secondary/20"
+                          : "border-border hover:border-secondary/50 hover:shadow-lg hover:shadow-secondary/10"
                       }`}
                     >
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-semibold text-lg">{service.name}</h3>
-                        <span className="font-bold text-primary">{formatCurrency(service.price)}</span>
+                      {/* Hover Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-secondary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      
+                      <div className="relative">
+                        {/* Category Badge */}
+                        {service.category && (
+                          <Badge variant="outline" className="mb-3 text-[10px] uppercase tracking-wider font-semibold border-secondary/30 text-secondary">
+                            {service.category}
+                          </Badge>
+                        )}
+
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <h3 className="font-semibold text-lg text-foreground group-hover:text-secondary transition-colors">
+                            {service.name}
+                          </h3>
+                          <span className="font-bold text-xl text-secondary whitespace-nowrap">
+                            {formatCurrency(service.price)}
+                          </span>
+                        </div>
+                        
+                        {service.description && (
+                          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
+                            {service.description}
+                          </p>
+                        )}
+                        
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1.5">
+                            <Timer className="h-3.5 w-3.5" />
+                            {service.duration} min
+                          </span>
+                          {selectedService?.id === service.id && (
+                            <span className="flex items-center gap-1 text-secondary font-medium">
+                              <Check className="h-3.5 w-3.5" />
+                              Selecionado
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        <Clock className="h-4 w-4 inline mr-1" />
-                        {service.duration} minutos
-                      </p>
+
+                      {/* Selection Indicator */}
+                      {selectedService?.id === service.id && (
+                        <div className="absolute top-3 right-3 w-6 h-6 rounded-full bg-secondary flex items-center justify-center">
+                          <Check className="h-4 w-4 text-charcoal" />
+                        </div>
+                      )}
                     </button>
                   ))
                   ) : (
