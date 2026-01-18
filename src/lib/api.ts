@@ -163,11 +163,70 @@ class ApiClient {
       // Support both /admin/services and /barbershops/:id/services
       return {
         services: [
-          { id: '550e8400-e29b-41d4-a716-446655440210', name: 'Corte Masculino', duration: 30, price: 45.00 },
-          { id: '550e8400-e29b-41d4-a716-446655440211', name: 'Barba Completa', duration: 30, price: 35.00 },
-          { id: '550e8400-e29b-41d4-a716-446655440212', name: 'Combo Corte + Barba', duration: 60, price: 70.00 },
-          { id: '550e8400-e29b-41d4-a716-446655440213', name: 'Corte Infantil', duration: 25, price: 35.00 },
-          { id: '550e8400-e29b-41d4-a716-446655440214', name: 'Sobrancelha', duration: 15, price: 15.00 },
+          { 
+            id: '550e8400-e29b-41d4-a716-446655440210', 
+            name: 'Corte Degradê', 
+            description: 'Corte moderno com máquina e tesoura',
+            duration: 45, 
+            price: 55.00,
+            category: 'Corte'
+          },
+          { 
+            id: '550e8400-e29b-41d4-a716-446655440211', 
+            name: 'Barba Terapia', 
+            description: 'Barba completa com toalha quente e óleos',
+            duration: 40, 
+            price: 45.00,
+            category: 'Barba'
+          },
+          { 
+            id: '550e8400-e29b-41d4-a716-446655440212', 
+            name: 'Combo Corte + Barba', 
+            description: 'Pacote completo para o visual perfeito',
+            duration: 75, 
+            price: 85.00,
+            category: 'Combo'
+          },
+          { 
+            id: '550e8400-e29b-41d4-a716-446655440213', 
+            name: 'Corte Social', 
+            description: 'Corte clássico e elegante',
+            duration: 30, 
+            price: 40.00,
+            category: 'Corte'
+          },
+          { 
+            id: '550e8400-e29b-41d4-a716-446655440214', 
+            name: 'Sobrancelha', 
+            description: 'Design e alinhamento de sobrancelha',
+            duration: 15, 
+            price: 20.00,
+            category: 'Acabamento'
+          },
+          { 
+            id: '550e8400-e29b-41d4-a716-446655440215', 
+            name: 'Pigmentação', 
+            description: 'Preenchimento e definição da barba',
+            duration: 50, 
+            price: 120.00,
+            category: 'Especialidade'
+          },
+          { 
+            id: '550e8400-e29b-41d4-a716-446655440216', 
+            name: 'Relaxamento Capilar', 
+            description: 'Alisamento e hidratação profunda',
+            duration: 90, 
+            price: 150.00,
+            category: 'Especialidade'
+          },
+          { 
+            id: '550e8400-e29b-41d4-a716-446655440217', 
+            name: 'Corte Navalhado', 
+            description: 'Acabamento premium com navalha',
+            duration: 50, 
+            price: 65.00,
+            category: 'Corte'
+          },
         ],
       };
     }
