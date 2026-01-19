@@ -34,53 +34,56 @@ export function PremiumQueueTicket({
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pulseScale, setPulseScale] = useState(1);
 
-  // Heartbeat animation for position 1
+  // Safely handle potentially missing number values
+  const safePosition = typeof position === 'number' && !isNaN(position) ? position : 0;
+  const safeWaitTime = typeof estimatedWaitTime === 'number' && !isNaN(estimatedWaitTime) ? estimatedWaitTime : 0;
+  const safeQueueLength = typeof queueLength === 'number' && !isNaN(queueLength) ? queueLength : 0;
+
   useEffect(() => {
-    if (position === 1) {
+    if (safePosition === 1) {
       const interval = setInterval(() => {
-        setPulseScale((prev) => (prev === 1 ? 1.05 : 1));
-      }, 500);
+        setPulseScale((prev) => (prev === 1 ? 1.02 : 1));
+      }, 800);
       return () => clearInterval(interval);
+    } else {
+        setPulseScale(1);
     }
-  }, [position]);
+  }, [safePosition]);
 
   const getStatusConfig = () => {
-    if (position === 1) {
+    if (safePosition === 1) {
       return {
-        label: "É A SUA VEZ!",
-        sublabel: "Dirija-se ao barbeiro agora",
-        bgGradient: "from-emerald-500 via-green-500 to-teal-500",
-        textColor: "text-white",
-        iconColor: "text-white",
-        ringColor: "ring-emerald-400",
-        glowColor: "shadow-emerald-500/50",
+        label: "SUA VEZ",
+        description: "Dirija-se à cadeira",
+        borderColor: "border-gold",
+        textColor: "text-gold",
+        bgGradient: "from-gold/20 via-gold/10 to-transparent",
         icon: Zap,
-        animate: true,
+        iconColor: "text-gold",
+        pulse: true,
       };
     }
-    if (position === 2) {
+    if (safePosition === 2) {
       return {
         label: "PRÓXIMO",
-        sublabel: "Prepare-se, você é o próximo",
-        bgGradient: "from-amber-500 via-yellow-500 to-orange-400",
-        textColor: "text-charcoal",
-        iconColor: "text-charcoal",
-        ringColor: "ring-amber-400",
-        glowColor: "shadow-amber-500/40",
+        description: "Prepare-se",
+        borderColor: "border-burgundy",
+        textColor: "text-burgundy",
+        bgGradient: "from-burgundy/20 via-burgundy/10 to-transparent",
         icon: Timer,
-        animate: true,
+        iconColor: "text-burgundy",
+        pulse: true,
       };
     }
     return {
-      label: "AGUARDANDO",
-      sublabel: "Aguarde sua vez na fila",
-      bgGradient: "from-slate-600 via-slate-500 to-slate-600",
-      textColor: "text-white",
-      iconColor: "text-white/80",
-      ringColor: "ring-slate-400",
-      glowColor: "shadow-slate-500/30",
+      label: "NA FILA",
+      description: "Aguarde sua vez",
+      borderColor: "border-zinc-700",
+      textColor: "text-muted-foreground",
+      bgGradient: "from-zinc-800/50 to-transparent",
       icon: Clock,
-      animate: false,
+      iconColor: "text-zinc-500",
+      pulse: false,
     };
   };
 
@@ -96,215 +99,114 @@ export function PremiumQueueTicket({
 
   return (
     <div className="w-full max-w-sm mx-auto perspective-1000">
-      {/* Main Ticket Container */}
       <div 
-        className="relative overflow-hidden rounded-3xl transition-transform duration-300"
+        className={cn(
+            "relative overflow-hidden rounded-xl bg-card border-2 shadow-2xl transition-all duration-500",
+            status.borderColor
+        )}
         style={{ transform: `scale(${pulseScale})` }}
       >
-        {/* Animated Background Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-charcoal via-charcoal-light to-charcoal opacity-95" />
-        
-        {/* Animated Orbs Background */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className={cn(
-            "absolute -top-20 -right-20 w-40 h-40 rounded-full opacity-20 blur-3xl",
-            `bg-gradient-to-br ${status.bgGradient}`,
-            status.animate && "animate-pulse"
-          )} />
-          <div className={cn(
-            "absolute -bottom-20 -left-20 w-40 h-40 rounded-full opacity-15 blur-3xl",
-            `bg-gradient-to-br ${status.bgGradient}`,
-            status.animate && "animate-pulse"
-          )} style={{ animationDelay: "1s" }} />
-        </div>
-
-        {/* Noise Texture Overlay */}
-        <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuNiIgbnVtT2N0YXZlcz0iMyIgc3RpdGNoVGlsZXM9InN0aXRjaCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNub2lzZSkiIG9wYWNpdHk9IjEiLz48L3N2Zz4=')]" />
+        {/* Decorative Top Border */}
+        <div className={cn("absolute top-0 left-0 right-0 h-1.5 w-full", 
+            safePosition === 1 ? "bg-gold" : safePosition === 2 ? "bg-burgundy" : "bg-zinc-700"
+        )} />
 
         {/* Content */}
-        <div className="relative z-10 p-6 sm:p-8">
-          {/* Live Indicator */}
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <div className="relative flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-              </span>
-              <span className="text-xs font-semibold text-cream/90 tracking-wider uppercase">
-                Ao Vivo
-              </span>
-            </div>
-          </div>
-
-          {/* Barber Name */}
+        <div className="p-6 relative z-10">
+          
+          {/* Header */}
           <div className="text-center mb-6">
-            <p className="text-cream/50 text-xs uppercase tracking-[0.3em] mb-1">
-              Fila de
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
+              Fila de Espera
             </p>
-            <h3 className="text-cream font-display text-xl font-bold tracking-wide">
-              {barberName}
+            <h3 className="font-display text-2xl font-bold text-foreground">
+              {barberName || "Barbeiro"}
             </h3>
           </div>
 
-          {/* Position Display - THE HERO */}
-          <div className="relative flex justify-center mb-8">
-            {/* Outer Ring */}
+          {/* Main Number Display */}
+          <div className="relative py-6 flex justify-center items-center">
+            {/* Background Glow */}
             <div className={cn(
-              "absolute inset-0 m-auto w-44 h-44 rounded-full",
-              status.animate && "animate-spin-slow"
-            )}>
-              <svg className="w-full h-full" viewBox="0 0 100 100">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="48"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="0.5"
-                  className="text-cream/10"
-                  strokeDasharray="4 4"
-                />
-              </svg>
-            </div>
-
-            {/* Inner Glow Ring */}
-            <div className={cn(
-              "absolute inset-0 m-auto w-36 h-36 rounded-full ring-2",
-              status.ringColor,
-              "opacity-30",
-              status.animate && "animate-pulse"
+                "absolute inset-0 mx-auto w-40 h-40 rounded-full blur-3xl opacity-20",
+                safePosition === 1 ? "bg-gold" : safePosition === 2 ? "bg-burgundy" : "bg-zinc-500"
             )} />
 
-            {/* Main Circle */}
             <div className={cn(
-              "relative w-32 h-32 rounded-full flex items-center justify-center",
-              "bg-gradient-to-br",
-              status.bgGradient,
-              "shadow-2xl",
-              status.glowColor,
-              "transition-all duration-500"
+                "relative z-10 flex flex-col items-center justify-center w-32 h-32 rounded-full border-4 bg-background shadow-xl",
+                status.borderColor
             )}>
-              {/* Inner Highlight */}
-              <div className="absolute inset-1 rounded-full bg-gradient-to-br from-white/30 to-transparent" />
-              
-              {/* Position Number */}
-              <div className="relative text-center">
-                <span className={cn(
-                  "text-5xl sm:text-6xl font-black tracking-tighter",
-                  status.textColor
-                )}>
-                  {String(position).padStart(2, "0")}
+                <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-[-5px]">Posição</span>
+                <span className={cn("text-6xl font-display font-bold", status.textColor)}>
+                    {String(safePosition).padStart(2, "0")}
                 </span>
-              </div>
-
-              {/* Sparkle Effect for Position 1 */}
-              {position === 1 && (
-                <>
-                  <Sparkles className="absolute -top-2 -right-2 w-6 h-6 text-yellow-300 animate-pulse" />
-                  <Sparkles className="absolute -bottom-1 -left-3 w-4 h-4 text-yellow-300 animate-pulse" style={{ animationDelay: "0.5s" }} />
-                </>
-              )}
             </div>
-          </div>
 
-          {/* Status Badge */}
-          <div className="flex flex-col items-center gap-2 mb-8">
+            {/* Status Badge - Floating */}
             <div className={cn(
-              "inline-flex items-center gap-2 px-5 py-2.5 rounded-full",
-              "bg-gradient-to-r",
-              status.bgGradient,
-              "shadow-lg",
-              status.glowColor
+                "absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 px-4 py-1.5 rounded-full border bg-background shadow-lg flex items-center gap-2 whitespace-nowrap",
+                status.borderColor
             )}>
-              <StatusIcon className={cn("w-4 h-4", status.textColor)} />
-              <span className={cn(
-                "font-bold text-sm tracking-wider",
-                status.textColor
-              )}>
-                {status.label}
-              </span>
+                <StatusIcon className={cn("w-3.5 h-3.5", status.iconColor)} />
+                <span className={cn("text-xs font-bold tracking-wider", status.textColor)}>
+                    {status.label}
+                </span>
             </div>
-            <p className="text-cream/60 text-sm">{status.sublabel}</p>
           </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-sm p-4 text-center group hover:bg-white/10 transition-colors">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
-              <div className="relative">
-                <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-gradient-to-br from-secondary/30 to-secondary/10 flex items-center justify-center">
-                  <Timer className="h-5 w-5 text-secondary" />
+          {/* Info Stats */}
+          <div className="mt-10 grid grid-cols-2 gap-4">
+            <div className="p-3 rounded-lg bg-muted/30 border border-border/50 text-center">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Tempo Est.</p>
+                <div className="flex items-center justify-center gap-1.5">
+                    <Clock className="w-4 h-4 text-gold" />
+                    <span className="font-bold text-foreground">{formatWaitTime(safeWaitTime)}</span>
                 </div>
-                <p className="text-2xl font-bold text-cream">
-                  {formatWaitTime(estimatedWaitTime)}
-                </p>
-                <p className="text-[10px] uppercase tracking-wider text-cream/40 mt-1">
-                  Tempo estimado
-                </p>
-              </div>
             </div>
-            
-            <div className="relative overflow-hidden rounded-2xl bg-white/5 backdrop-blur-sm p-4 text-center group hover:bg-white/10 transition-colors">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent" />
-              <div className="relative">
-                <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center">
-                  <Users className="h-5 w-5 text-primary" />
+            <div className="p-3 rounded-lg bg-muted/30 border border-border/50 text-center">
+                <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Na Fila</p>
+                <div className="flex items-center justify-center gap-1.5">
+                    <Users className="w-4 h-4 text-burgundy" />
+                    <span className="font-bold text-foreground">{safeQueueLength}</span>
                 </div>
-                <p className="text-2xl font-bold text-cream">{queueLength}</p>
-                <p className="text-[10px] uppercase tracking-wider text-cream/40 mt-1">
-                  Na fila
-                </p>
-              </div>
             </div>
           </div>
 
-          {/* Progress Bar */}
-          <div className="mb-6">
-            <div className="flex justify-between text-xs text-cream/40 mb-2">
-              <span>Progresso</span>
-              <span>{Math.max(0, 100 - (position - 1) * 20)}%</span>
-            </div>
-            <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-              <div
-                className={cn(
-                  "h-full rounded-full transition-all duration-1000 ease-out",
-                  "bg-gradient-to-r",
-                  status.bgGradient
-                )}
-                style={{
-                  width: `${Math.max(10, 100 - (position - 1) * 20)}%`,
-                }}
-              />
-            </div>
+          {/* Helper Text */}
+          <div className="mt-6 text-center">
+             <p className="text-sm text-muted-foreground">
+                {status.description}
+             </p>
           </div>
 
-          {/* Leave Queue Button */}
-          <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="p-4 bg-muted/20 border-t border-border/50">
+             <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
             <AlertDialogTrigger asChild>
               <Button
                 variant="ghost"
-                className="w-full text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-red-500/20 hover:border-red-500/40 rounded-xl h-12 transition-all duration-300"
+                className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 h-10"
                 disabled={isLoading}
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sair da Fila
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="bg-charcoal border-border/50">
+            <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle className="text-cream">Sair da fila?</AlertDialogTitle>
-                <AlertDialogDescription className="text-cream/70">
+                <AlertDialogTitle>Sair da fila?</AlertDialogTitle>
+                <AlertDialogDescription>
                   Tem certeza que deseja sair da fila? Você perderá sua posição
                   atual e precisará entrar novamente.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel className="bg-white/10 border-white/20 text-cream hover:bg-white/20">
-                  Cancelar
-                </AlertDialogCancel>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={onLeaveQueue}
-                  className="bg-red-500 hover:bg-red-600 text-white"
+                  className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                 >
                   Sim, sair da fila
                 </AlertDialogAction>
@@ -312,13 +214,7 @@ export function PremiumQueueTicket({
             </AlertDialogContent>
           </AlertDialog>
         </div>
-
-        {/* Bottom Decorative Pattern */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-secondary/50 to-transparent" />
       </div>
-
-      {/* Ticket Shadow/Reflection */}
-      <div className="h-8 mx-4 -mt-4 rounded-b-3xl bg-gradient-to-b from-black/20 to-transparent blur-xl" />
     </div>
   );
 }

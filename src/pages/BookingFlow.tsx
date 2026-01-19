@@ -59,7 +59,9 @@ interface Service {
 
 interface TimeSlot {
   startTime: string;
+  startTime: string;
   endTime: string;
+  status?: 'available' | 'busy';
 }
 
 interface Appointment {
@@ -96,6 +98,41 @@ interface QueueJoinResponse {
 }
 
 const DAYS_OF_WEEK = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+const MOCK_SERVICES: Service[] = [
+  {
+    id: "mock-1",
+    name: "Corte de Cabelo",
+    description: "Corte clássico ou moderno com acabamento na navalha.",
+    duration: 30,
+    price: 45.00,
+    category: "Cabelo"
+  },
+  {
+    id: "mock-2",
+    name: "Barba Completa",
+    description: "Modelagem de barba com toalha quente.",
+    duration: 30,
+    price: 35.00,
+    category: "Barba"
+  },
+  {
+    id: "mock-3",
+    name: "Combo Corte + Barba",
+    description: "Serviço completo para o visual perfeito.",
+    duration: 50,
+    price: 70.00,
+    category: "Combo"
+  },
+  {
+    id: "mock-4",
+    name: "Pezinho / Acabamento",
+    description: "Apenas o contorno e acabamento.",
+    duration: 15,
+    price: 20.00,
+    category: "Cabelo"
+  }
+];
 
 export default function BookingFlow() {
   const { token } = useParams<{ token: string }>();
@@ -149,13 +186,13 @@ export default function BookingFlow() {
         setPreSelectedBarberId(response.barberId);
 
         // Fetch barbers and services
-        const [barbersRes, servicesRes] = await Promise.all([
+        const [barbersRes] = await Promise.all([
           api.get<{ barbers: Barber[] }>(`/barbershops/${response.barbershopId}/barbers`),
-          api.get<{ services: Service[] }>(`/barbershops/${response.barbershopId}/services`),
+          // api.get<{ services: Service[] }>(`/barbershops/${response.barbershopId}/services`), // Mocked below
         ]);
 
         setBarbers(barbersRes.barbers);
-        setServices(servicesRes.services);
+        setServices(MOCK_SERVICES); // Use mock services
 
         // If barber is pre-selected, skip barber selection
         if (response.barberId) {
@@ -193,11 +230,45 @@ export default function BookingFlow() {
     const fetchAvailability = async () => {
       setIsLoading(true);
       try {
-        const dateStr = format(selectedDate, "yyyy-MM-dd");
-        const response = await api.get<{ slots: TimeSlot[] }>(
-          `/availability?barberId=${selectedBarber.id}&date=${dateStr}`
-        );
-        setAvailableSlots(response.slots);
+        // Mock implementation for simulation
+        // const dateStr = format(selectedDate, "yyyy-MM-dd");
+        // const response = await api.get<{ slots: TimeSlot[] }>(
+        //   `/availability?barberId=${selectedBarber.id}&date=${dateStr}`
+        // );
+        
+        await new Promise(resolve => setTimeout(resolve, 800)); // Simulate loading
+
+        const slots: TimeSlot[] = [];
+        const startHour = 9;
+        const endHour = 19;
+        const interval = 30; // minutes
+
+        const now = new Date();
+        const isToday = isSameDay(selectedDate, now);
+
+        for (let h = startHour; h < endHour; h++) {
+            for (let m = 0; m < 60; m += interval) {
+                const timeString = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                
+                // Filter past times if today
+                if (isToday) {
+                    const slotDate = new Date(selectedDate);
+                    slotDate.setHours(h, m, 0, 0);
+                    if (isBefore(slotDate, now)) continue;
+                }
+
+                // Randomly mark some slots as busy for visual effect (except the first few to ensure usability)
+                const isBusy = Math.random() > 0.7; // 30% chance of being busy
+
+                slots.push({
+                    startTime: timeString,
+                    endTime: `${String(m + interval >= 60 ? h + 1 : h).padStart(2, '0')}:${String((m + interval) % 60).padStart(2, '0')}`,
+                    status: isBusy ? 'busy' : 'available'
+                });
+            }
+        }
+
+        setAvailableSlots(slots);
       } catch (error) {
         toast({
           title: "Erro ao buscar horários",
@@ -249,6 +320,7 @@ export default function BookingFlow() {
   };
 
   const handleTimeSelect = (slot: TimeSlot) => {
+    if (slot.status === 'busy') return;
     setSelectedTimeSlot(slot);
     setStep("confirmation");
   };
@@ -262,14 +334,31 @@ export default function BookingFlow() {
       const [hours, minutes] = selectedTimeSlot.startTime.split(":").map(Number);
       const appointmentDateTime = setMinutes(setHours(selectedDate, hours), minutes);
 
-      const response = await api.post<Appointment>("/appointments", {
-        barberId: selectedBarber.id,
-        serviceId: selectedService.id,
-        startTime: appointmentDateTime.toISOString(),
-      });
+      // Handle mock services
+      if (selectedService.id.startsWith("mock-")) {
+        await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate loading
+        
+        const mockAppointment: Appointment = {
+          id: `mock-apt-${Date.now()}`,
+          barberId: selectedBarber.id,
+          serviceId: selectedService.id,
+          startTime: appointmentDateTime.toISOString(),
+          endTime: new Date(appointmentDateTime.getTime() + selectedService.duration * 60000).toISOString(),
+          status: "scheduled"
+        };
 
-      setCreatedAppointment(response);
-      setStep("success");
+        setCreatedAppointment(mockAppointment);
+        setStep("success");
+      } else {
+        const response = await api.post<Appointment>("/appointments", {
+          barberId: selectedBarber.id,
+          serviceId: selectedService.id,
+          startTime: appointmentDateTime.toISOString(),
+        });
+
+        setCreatedAppointment(response);
+        setStep("success");
+      }
     } catch (error) {
       toast({
         title: "Erro ao criar agendamento",
@@ -757,8 +846,8 @@ export default function BookingFlow() {
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Tempo estimado</span>
                       <span className="font-semibold text-foreground">
-                        {Math.floor(queueStatus.estimatedWaitTime! / 60)}h{" "}
-                        {queueStatus.estimatedWaitTime! % 60}min
+                        {Math.floor((queueStatus.estimatedWaitTime ?? 0) / 60)}h{" "}
+                        {(queueStatus.estimatedWaitTime ?? 0) % 60}min
                       </span>
                     </div>
                   </div>
@@ -787,12 +876,12 @@ export default function BookingFlow() {
             )}
 
             {/* Step: Queue Position - Premium Ticket */}
-            {step === "queue-position" && selectedBarber && queuePosition !== null && (
+            {step === "queue-position" && selectedBarber && (
               <div className="py-4">
                 <PremiumQueueTicket
-                  position={queuePosition}
-                  estimatedWaitTime={queueWaitTime || 0}
-                  queueLength={queueStatus?.queueLength || queuePosition + 2}
+                  position={queuePosition ?? 0}
+                  estimatedWaitTime={queueWaitTime ?? 0}
+                  queueLength={queueStatus?.queueLength ?? ((queuePosition ?? 0) + 1)}
                   barberName={selectedBarber.name}
                   onLeaveQueue={handleLeaveQueue}
                   isLoading={isLoading}

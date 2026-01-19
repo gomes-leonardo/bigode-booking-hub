@@ -37,7 +37,7 @@ export function DigitalQueueTicket({
     if (position === 1) {
       return {
         label: "É A SUA VEZ!",
-        color: "bg-success",
+        color: "bg-yellow-500 text-charcoal",
         pulse: true,
         description: "Dirija-se ao barbeiro",
       };
@@ -45,14 +45,14 @@ export function DigitalQueueTicket({
     if (position === 2) {
       return {
         label: "PRÓXIMO",
-        color: "bg-secondary",
+        color: "bg-primary text-white",
         pulse: true,
         description: "Prepare-se, você é o próximo",
       };
     }
     return {
       label: "AGUARDANDO",
-      color: "bg-primary",
+      color: "bg-zinc-700 text-white",
       pulse: false,
       description: "Aguarde sua vez na fila",
     };
@@ -86,7 +86,7 @@ export function DigitalQueueTicket({
                 #{String(position).padStart(2, "0")}
               </span>
               {status.pulse && (
-                <span className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-success animate-ping" />
+                <span className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-yellow-500 animate-ping" />
               )}
             </div>
             <p className="text-cream/60 text-sm mt-2">Sua posição na fila</p>

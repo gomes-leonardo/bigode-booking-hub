@@ -32,11 +32,6 @@ export function MustacheLogo({ className, size = "md", showText = true }: Mustac
         <ellipse cx="15" cy="28" rx="4" ry="3" opacity="0.3" />
         <ellipse cx="85" cy="28" rx="4" ry="3" opacity="0.3" />
       </svg>
-      {showText && (
-        <span className={cn("font-display font-bold text-foreground", textSizeMap[size])}>
-          Bigode
-        </span>
-      )}
     </div>
   );
 }

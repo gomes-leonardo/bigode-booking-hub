@@ -69,13 +69,10 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/admin/login">
                 <Button variant="gold" size="xl">
-                  Sou Barbeiro
+                  Sou Barbeiro / Quero Iniciar
                   <ArrowRight className="h-5 w-5" />
                 </Button>
               </Link>
-              <Button variant="outline" size="xl" className="border-cream/30 text-cream hover:bg-cream/10">
-                Recebeu um link? Clique aqui
-              </Button>
             </div>
           </div>
         </div>
@@ -152,11 +149,12 @@ export default function LandingPage() {
                 </ul>
               </div>
               <div className="relative">
-                <div className="aspect-square bg-gradient-to-br from-burgundy/10 to-gold/10 rounded-3xl p-8 flex items-center justify-center">
-                  <div className="text-center">
-                    <Clock className="h-20 w-20 mx-auto text-primary mb-4 opacity-50" />
-                    <Sparkles className="h-10 w-10 mx-auto text-secondary animate-pulse" />
-                  </div>
+                <div className="aspect-square bg-gradient-to-br from-burgundy/10 to-gold/10 rounded-3xl p-4 flex items-center justify-center overflow-hidden border border-white/5 shadow-2xl">
+                   <img 
+                      src="/bigode-mockup.png" 
+                      alt="Bigode App Interface" 
+                      className="w-full h-full object-contain rounded-2xl transform hover:scale-105 transition-transform duration-700"
+                   />
                 </div>
               </div>
             </div>

@@ -15,8 +15,10 @@ interface AuthState {
   admin: Admin | null;
   token: string | null;
   isAuthenticated: boolean;
+  hasSelectedPlan: boolean;
   login: (admin: Admin, token: string) => void;
   logout: () => void;
+  setHasSelectedPlan: (value: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -25,8 +27,10 @@ export const useAuthStore = create<AuthState>()(
       admin: null,
       token: null,
       isAuthenticated: false,
+      hasSelectedPlan: false,
       login: (admin, token) => set({ admin, token, isAuthenticated: true }),
-      logout: () => set({ admin: null, token: null, isAuthenticated: false }),
+      logout: () => set({ admin: null, token: null, isAuthenticated: false, hasSelectedPlan: false }),
+      setHasSelectedPlan: (value) => set({ hasSelectedPlan: value }),
     }),
     {
       name: 'bigode-auth',
